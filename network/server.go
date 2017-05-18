@@ -53,12 +53,16 @@ func writeToAgent(conn net.Conn) {
 }
 
 func recvFromAgent(conn net.Conn) {
+    
+    defer conn.Close()
+
     buf := make([]byte, 1024)
     for {
         len, err := conn.Read(buf)
         fmt.Println("recv data from remote agent")
         if err != nil {
-            fmt.Println(err)
+            fmt.Println("this is error", err)
+            break
         }
 
         if len > 0 {
