@@ -3,13 +3,22 @@ package network
 import (
     "net"
     "fmt"
+    "conf"
+    "strconv"
 )
 
 var ClientList  = make(map[string]net.Conn)
 var ClientCh  = make(map[string]chan string)
 
 func InitServer() {
-    service := ":6768"
+    
+    var serverConfig conf.ServerConf
+    serverConfig = conf.LoadServerConfig("../conf/server.json") 
+
+    service := serverConfig.Host + ":" + strconv.Itoa(serverConfig.Port)
+
+    fmt.Println(service)
+
     tcpAddr, err := net.ResolveTCPAddr("tcp4", service)
     if err != nil {
         fmt.Println(err)

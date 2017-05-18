@@ -13,8 +13,7 @@ func main() {
 
     mode := flag.String("mode", "no-mode-gave", "run-mode")
     flag.Parse()
-    
-    fmt.Println(*mode)
+
     if *mode == "server" {
         server()
     } else if *mode == "agent" {
