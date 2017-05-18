@@ -5,8 +5,8 @@ import (
     "fmt"
 )
 
-var ClientList []net.Conn
-var Ch = make(chan string, 10)
+var ClientList  = make(map[string]net.Conn)
+var ClientCh  = make(map[string]chan string)
 
 func InitServer() {
     service := ":6768"
@@ -27,8 +27,14 @@ func InitServer() {
         if err != nil {
             fmt.Println(err)
         }
-        ClientList = append(ClientList, conn)
-        Ch <- "hello agent"
+        
+        /* 记录客户端标记 */
+        clientFlag := conn.RemoteAddr().String()
+        ClientList[clientFlag] = conn
+        ClientCh[clientFlag] = make(chan string, 10)
+
+        ClientCh[clientFlag] <- "hello agent1"
+        ClientCh[clientFlag] <- "hello agent2"
         go writeToAgent(conn)
         go recvFromAgent(conn)
     }
@@ -36,7 +42,7 @@ func InitServer() {
  
 func writeToAgent(conn net.Conn) {
    for {
-       msg := <- Ch
+       msg := <- ClientCh[conn.RemoteAddr().String()]
        fmt.Println("in serverHandler")
        len, err := conn.Write([]byte(msg)) 
        if err != nil {
@@ -50,13 +56,12 @@ func recvFromAgent(conn net.Conn) {
     buf := make([]byte, 1024)
     for {
         len, err := conn.Read(buf)
-        fmt.Println("recv data from remote server")
+        fmt.Println("recv data from remote agent")
         if err != nil {
             fmt.Println(err)
         }
 
-        fmt.Println(string(buf[0:len]))
-        Ch <- string(buf[0:len])
+        fmt.Println(string(buf[0:len]), len)
+        ClientCh[conn.RemoteAddr().String()] <- string(buf[0:len])
     }
-
 } 

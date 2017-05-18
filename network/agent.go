@@ -17,15 +17,17 @@ func InitAgent() {
     if err != nil {
         fmt.Println(err)
     }
-    go agentHandler(*conn)
+    agentHandler(*conn)
 }
 
 func agentHandler(conn net.TCPConn) {
     buf := make([]byte, 1024)
-    len, err := conn.Read(buf)
-    fmt.Println("recv data from remote server")
-    if err != nil {
-        fmt.Println(err)
+    for {
+        len, err := conn.Read(buf)
+        fmt.Println("recv data from remote server")
+        if err != nil {
+            fmt.Println(err)
+        }
+        fmt.Println(string(buf[0:len]))
     }
-    fmt.Println(string(buf[0:len]))
 }
