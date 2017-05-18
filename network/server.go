@@ -61,6 +61,10 @@ func recvFromAgent(conn net.Conn) {
             fmt.Println(err)
         }
 
+        if len > 0 {
+            buf[len] = 0
+        }
+
         fmt.Println(string(buf[0:len]), len)
         ClientCh[conn.RemoteAddr().String()] <- string(buf[0:len])
     }
