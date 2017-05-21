@@ -42,8 +42,6 @@ func InitServer() {
         ClientList[clientFlag] = conn
         ClientCh[clientFlag] = make(chan string, 10)
 
-        ClientCh[clientFlag] <- "hello agent1"
-        ClientCh[clientFlag] <- "hello agent2"
         go writeToAgent(conn)
         go recvFromAgent(conn)
     }
