@@ -63,7 +63,7 @@ func recvFromAgent(conn net.Conn) {
     
     defer conn.Close()
 
-    buf := make([]byte, 1024)
+    buf := make([]byte, 202131)
     for {
         len, err := conn.Read(buf)
         fmt.Println("recv data from remote agent")

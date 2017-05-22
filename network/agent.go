@@ -33,6 +33,8 @@ func agentHandler(conn net.TCPConn) {
         
         var taskHandler handler.WebHandler
         taskHandler.Task = task
-        fmt.Println(task, ":", taskHandler.DoTask())
+        taskResponse := taskHandler.DoTask()
+        writeLen, err := conn.Write([]byte(taskResponse))
+        fmt.Println(writeLen, err)
     }
 }
