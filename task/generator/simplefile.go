@@ -4,6 +4,7 @@ import (
     "bufio"
     "os"
     "io"
+    "fmt"
 )
 
 type FileGenerator struct {
@@ -24,9 +25,9 @@ func (FileGenerator) GetLatestTask() string {
     return "123"
 }
 
-func (this FileGenerator) GetAllTask() []string {
-    var taskList []string
+func (this FileGenerator) GetAllTask(taskch chan string) {
     inputFile, err := os.Open(this.FilePath)
+    fmt.Println(this.FilePath)
     if err != nil {
         panic("cannot access task file")
     }
@@ -37,7 +38,7 @@ func (this FileGenerator) GetAllTask() []string {
         if err == io.EOF {
             break
         }
-        taskList = append(taskList, string(inputString))
+        fmt.Println(string(inputString))
+        taskch <- string(inputString)
     }
-    return taskList
 }

@@ -17,15 +17,16 @@ func main() {
     flag.Parse()
    
     if *mode == "server" {
-
-        /* 获取任务列表 */
+        
+        var taskch chan string 
+        taskch = make(chan string) //note for this
         var fileGenerator generator.FileGenerator
         fileGenerator = (fileGenerator.GeneratorInit("./taskfile")).(generator.FileGenerator)
-        fmt.Println(fileGenerator)
-        taskList := fileGenerator.GetAllTask()
-       
-        go handleTask(taskList)
-        server(taskList)
+        go fileGenerator.GetAllTask(taskch)
+        go handleTask(taskch)
+
+        server()
+
     } else if *mode == "agent" {
         agent()
     } else {
@@ -33,7 +34,7 @@ func main() {
     }
 }
 
-func server(taskList []string) {
+func server() {
     network.InitServer() 
 }
 
@@ -49,24 +50,27 @@ func panicRecover() {
     }
 }
 
-func handleTask(taskList []string) {
+func handleTask(taskch chan string) {
    var doneTask map[string]string
    doneTask = make(map[string]string)
    for {
-       for _, task := range taskList {
-            
-            if doneTask[task] != ""{
-                continue
-            }
+       if len(network.ClientList) == 0 {
+           continue
+       }
 
-            handlerAgent := getHandleAgent(network.ClientList)
-            if handlerAgent == "" {
-                continue
-            }
-            fmt.Println(task, handlerAgent)
-            network.ClientCh[handlerAgent] <- task
-            doneTask[task] = task
-       } 
+       task := <- taskch
+       fmt.Println(task)
+       if doneTask[task] != ""{
+           continue
+       }
+
+       handlerAgent := getHandleAgent(network.ClientList)
+       if handlerAgent == "" {
+           continue
+       }
+       fmt.Println(task, handlerAgent)
+       network.ClientCh[handlerAgent] <- task
+       doneTask[task] = task
    }
 }
 
