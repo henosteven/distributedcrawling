@@ -2,6 +2,7 @@ package network
 
 import (
     "net"
+    "task/handler"
     "fmt"
 )
 
@@ -24,11 +25,14 @@ func agentHandler(conn net.TCPConn) {
     buf := make([]byte, 1024)
     for {
         len, err := conn.Read(buf)
-        fmt.Println("recv data from remote server", err)
         if err != nil {
             fmt.Println(err)
             break //server close , err -> EOF
         }
-        fmt.Println(string(buf[0:len]))
+        task := string(buf[0:len])
+        
+        var taskHandler handler.WebHandler
+        taskHandler.Task = task
+        fmt.Println(task, ":", taskHandler.DoTask())
     }
 }
