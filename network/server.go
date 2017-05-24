@@ -6,6 +6,9 @@ import (
     "conf"
     "strconv"
     "protocol"
+    "time"
+    "os"
+    "io"
 )
 
 var ClientList  = make(map[string]net.Conn)
@@ -42,9 +45,12 @@ func InitServer() {
         clientFlag := conn.RemoteAddr().String()
         ClientList[clientFlag] = conn
         ClientCh[clientFlag] = make(chan string, 10)
-
+        
         go writeToAgent(conn)
-        go recvFromAgent(conn)
+
+        var ch  = make(chan []byte)
+        go recvFromAgent(conn, ch)
+        go appendToFile(ch)
     }
 }
  
@@ -62,10 +68,11 @@ func writeToAgent(conn net.Conn) {
    }
 }
 
-func recvFromAgent(conn net.Conn) {
+func recvFromAgent(conn net.Conn, ch chan []byte) {
     
     defer conn.Close()
     
+    var conntentBuf []byte
     for {
         var buf = make([]byte, 1024)
         len, err := conn.Read(buf)
@@ -73,7 +80,21 @@ func recvFromAgent(conn net.Conn) {
             fmt.Println("this is error", err)
             break
         }
-        
-        fmt.Println(string(buf[0:len]), len)
+        conntentBuf = append(conntentBuf, buf[0:len]...) 
+        tmpBuf := protocol.UnPack(conntentBuf, ch)
+        conntentBuf = tmpBuf
     }
-} 
+}
+
+func appendToFile(ch chan []byte) {
+    for {
+        msg := <- ch
+        
+        filename := strconv.Itoa(int(time.Now().UnixNano()/1000000))
+        f, err := os.Create(filename)
+        if err != nil {
+            fmt.Println("create file failed")
+        }
+        io.WriteString(f, string(msg))
+    }
+}

@@ -29,11 +29,13 @@ func InitAgent() {
 func handleTask(ch chan []byte, conn net.TCPConn) {
     for {
         task := <-ch
-        
         var taskHandler handler.WebHandler
         taskHandler.Task = string(task)
         taskResponse := taskHandler.DoTask()
-        writeLen, err := conn.Write([]byte(taskResponse))
+        
+        pkgMsg := protocol.Pack([]byte(taskResponse))
+
+        writeLen, err := conn.Write(pkgMsg)
         fmt.Println(writeLen, err)
     }
 }
