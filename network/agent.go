@@ -4,6 +4,7 @@ import (
     "net"
     "task/handler"
     "fmt"
+    "protocol"
 )
 
 func InitAgent() {
@@ -18,10 +19,26 @@ func InitAgent() {
     if err != nil {
         fmt.Println(err)
     }
-    agentHandler(*conn)
+
+    var ch chan []byte
+    ch = make(chan []byte)
+    go handleTask(ch, *conn)
+    agentHandler(ch, *conn)
 }
 
-func agentHandler(conn net.TCPConn) {
+func handleTask(ch chan []byte, conn net.TCPConn) {
+    for {
+        task := <-ch
+        
+        var taskHandler handler.WebHandler
+        taskHandler.Task = string(task)
+        taskResponse := taskHandler.DoTask()
+        writeLen, err := conn.Write([]byte(taskResponse))
+        fmt.Println(writeLen, err)
+    }
+}
+
+func agentHandler(ch chan []byte, conn net.TCPConn) {
     buf := make([]byte, 1024)
     for {
         len, err := conn.Read(buf)
@@ -29,12 +46,7 @@ func agentHandler(conn net.TCPConn) {
             fmt.Println(err)
             break //server close , err -> EOF
         }
-        task := string(buf[0:len])
-        
-        var taskHandler handler.WebHandler
-        taskHandler.Task = task
-        taskResponse := taskHandler.DoTask()
-        writeLen, err := conn.Write([]byte(taskResponse))
-        fmt.Println(writeLen, err)
+
+        protocol.UnPack(buf[0:len], ch)
     }
 }

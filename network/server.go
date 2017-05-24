@@ -5,6 +5,7 @@ import (
     "fmt"
     "conf"
     "strconv"
+    "protocol"
 )
 
 var ClientList  = make(map[string]net.Conn)
@@ -51,7 +52,9 @@ func writeToAgent(conn net.Conn) {
    for {
        msg := <- ClientCh[conn.RemoteAddr().String()]
        fmt.Println("in serverHandler")
-       len, err := conn.Write([]byte(msg)) 
+
+       pkgMsg := protocol.Pack([]byte(msg))
+       len, err := conn.Write(pkgMsg) 
        if err != nil {
            fmt.Println(err, len)
        }
@@ -63,7 +66,7 @@ func recvFromAgent(conn net.Conn) {
     
     defer conn.Close()
 
-    buf := make([]byte, 202131)
+    buf := make([]byte, 123121)
     for {
         len, err := conn.Read(buf)
         fmt.Println("recv data from remote agent")
@@ -77,6 +80,5 @@ func recvFromAgent(conn net.Conn) {
         }
 
         fmt.Println(string(buf[0:len]), len)
-        ClientCh[conn.RemoteAddr().String()] <- string(buf[0:len])
     }
 } 
