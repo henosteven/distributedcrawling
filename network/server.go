@@ -9,6 +9,8 @@ import (
     "time"
     "os"
     "io"
+    "strings"
+    "encoding/base64"
 )
 
 var ClientList  = make(map[string]net.Conn)
@@ -89,12 +91,18 @@ func recvFromAgent(conn net.Conn, ch chan []byte) {
 func appendToFile(ch chan []byte) {
     for {
         msg := <- ch
-        
-        filename := strconv.Itoa(int(time.Now().UnixNano()/1000000))
+       
+        msgContent := string(msg) 
+        pos := strings.Index(msgContent, "####")
+        task := msg[0:pos]
+
+        //filename := strconv.Itoa(int(time.Now().UnixNano()/1000000))
+        fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
+        filename := base64.StdEncoding.EncodeToString(task)
         f, err := os.Create(filename)
         if err != nil {
             fmt.Println("create file failed")
         }
-        io.WriteString(f, string(msg))
+        io.WriteString(f, msgContent)
     }
 }

@@ -33,7 +33,8 @@ func handleTask(ch chan []byte, conn net.TCPConn) {
         taskHandler.Task = string(task)
         taskResponse := taskHandler.DoTask()
         
-        pkgMsg := protocol.Pack([]byte(taskResponse))
+        backMsg := append(append(task, []byte("####")...), []byte(taskResponse)...)
+        pkgMsg := protocol.Pack(backMsg)
 
         writeLen, err := conn.Write(pkgMsg)
         fmt.Println(writeLen, err)
